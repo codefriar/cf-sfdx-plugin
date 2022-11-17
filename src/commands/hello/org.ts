@@ -6,8 +6,12 @@
  */
 import * as os from 'os';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, SfError } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
+import { promise as glob } from 'glob-promise';
+import { promises as fsPromise } from 'fs';
+import { parseStringPromise, Builder } from 'xml2js';
+import * as _ from 'lodash';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -42,52 +46,51 @@ export default class Org extends SfdxCommand {
   protected static supportsDevhubUsername = true;
 
   // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
-  protected static requiresProject = false;
+  protected static requiresProject = true;
 
   public async run(): Promise<AnyJson> {
-    const name = (this.flags.name || 'world') as string;
 
-    // this.org is guaranteed because requiresUsername=true, as opposed to supportsUsername
-    const conn = this.org.getConnection();
-    const query = 'Select Name, TrialExpirationDate from Organization';
-
-    // The type we are querying for
-    interface Organization {
-      Name: string;
-      TrialExpirationDate: string;
-    }
-
-    // Query the org
-    const result = await conn.query<Organization>(query);
-
-    // Organization will always return one result, but this is an example of throwing an error
-    // The output and --json will automatically be handled for you.
-    if (!result.records || result.records.length <= 0) {
-      throw new SfError(messages.getMessage('errorNoOrgResults', [this.org.getOrgId()]));
-    }
-
-    // Organization always only returns one result
-    const orgName = result.records[0].Name;
-    const trialExpirationDate = result.records[0].TrialExpirationDate;
-
-    let outputString = `Hello ${name}! This is org: ${orgName}`;
-    if (trialExpirationDate) {
-      const date = new Date(trialExpirationDate).toDateString();
-      outputString = `${outputString} and I will be around until ${date}!`;
-    }
-    this.ux.log(outputString);
-
-    // this.hubOrg is NOT guaranteed because supportsHubOrgUsername=true, as opposed to requiresHubOrgUsername.
-    if (this.hubOrg) {
-      const hubOrgId = this.hubOrg.getOrgId();
-      this.ux.log(`My hub org id is: ${hubOrgId}`);
-    }
-
-    if (this.flags.force && this.args.file) {
-      this.ux.log(`You input --force and a file: ${this.args.file as string}`);
-    }
-
-    // Return an object to be displayed with --json
-    return { orgId: this.org.getOrgId(), outputString };
+    glob('force-app/main/default/objects/**/*.object-meta.xml')
+      .then(async function (files) {
+        let iterationLength = files.length;
+        while (iterationLength--) {
+          await openParseEditAndWriteXMLFile(files[iterationLength]);
+        }
+      });
+  
+    return {};
   }
+}
+
+const openParseEditAndWriteXMLFile = async (fileName: string) => {
+  const json = await parseXmlFile(fileName);
+  if (json.CustomObject.hasOwnProperty('actionOverrides')) {
+    let actionOverrideIndex = json?.CustomObject?.actionOverrides.length;
+    while (actionOverrideIndex--) {
+      // console.log(json.CustomObject.actionOverrides[actionOverrideIndex]['type']);
+      if (json.CustomObject.actionOverrides[actionOverrideIndex]?.['type']?.[0] === 'Flexipage') {
+        console.log('Found Flexipage Action Override in object file: ' + fileName + ' index node: ' + actionOverrideIndex);
+        json.CustomObject.actionOverrides.splice(actionOverrideIndex, 1);
+      }
+    }
+
+    const builder = new Builder();
+    console.log(builder.buildObject(json));
+
+
+    // let checkIndex = json?.CustomObject?.actionOverrides.length;
+    // while(checkIndex--) {
+    //   if (json.CustomObject.actionOverrides[actionOverrideIndex]?.['type']?.[0] === 'Flexipage') {
+    //     console.log('Found Flexipage Action after deletion ' + ' index node: ' + actionOverrideIndex);
+    //   }
+    // }
+
+  }
+
+  // console.log(json);
+}
+
+const parseXmlFile = async (fileName: string) => {
+  const xmlFile = await fsPromise.readFile(fileName, 'utf-8');
+  return await parseStringPromise(xmlFile);
 }
