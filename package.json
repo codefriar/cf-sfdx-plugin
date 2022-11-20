@@ -8,6 +8,7 @@
     "@oclif/core": "^1",
     "@salesforce/command": "^5",
     "@salesforce/core": "^3",
+    "@salesforce/plugin-source": "^2.3.4",
     "@types/lodash": "^4.14.189",
     "glob": "^8.0.3",
     "glob-promise": "^5.0.0",
