@@ -1,6 +1,8 @@
 cf-sfdx-plugin
 ==============
 
+This is a hot mess right now. You've been warned.
+
 A Collection of extensions to SFDX
 
 [![Version](https://img.shields.io/npm/v/cf-sfdx-plugin.svg)](https://npmjs.org/package/cf-sfdx-plugin)
@@ -12,7 +14,8 @@ A Collection of extensions to SFDX
 [![License](https://img.shields.io/npm/l/cf-sfdx-plugin.svg)](https://github.com/codefriar/cf-sfdx-plugin/blob/master/package.json)
 
 <!-- toc -->
-* [Debugging your plugin](#debugging-your-plugin)
+- [cf-sfdx-plugin](#cf-sfdx-plugin)
+- [Debugging your plugin](#debugging-your-plugin)
 <!-- tocstop -->
 <!-- install -->
 <!-- usage -->
