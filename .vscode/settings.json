@@ -9,5 +9,8 @@
   "search.exclude": {
     "**/lib": true,
     "**/bin": true
-  }
+  },
+  "marquee.widgets.npm-stats.packageNames": [
+    "cf-sfdx-plugin"
+  ]
 }

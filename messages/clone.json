@@ -1,0 +1,9 @@
+{
+  "commandDescription": "Clones your production org to a local version of source-tracked metadata and pushes it to a new scratch org.",
+  "aliasNameDescription": "The alias for the new scratch org.",
+  "forceFlagDescription": "Enables force (-f) options on all sub commands.",
+  "examples": [
+    "sfdx cf:clone --targetusername myOrg@example.com --targetdevhubusername devhub@org.com",
+    "sfdx cf:clone --targetusername myOrg@example.com --targetdevhubusername devhub@org.com"
+  ]
+}
